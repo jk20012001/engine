@@ -165,6 +165,8 @@ void GlobalDSManager::setDescriptorSetLayout() {
     globalDescriptorSetLayout.bindings[UBOCamera::BINDING] = UBOCamera::DESCRIPTOR;
     globalDescriptorSetLayout.blocks[UBOShadow::NAME] = UBOShadow::LAYOUT;
     globalDescriptorSetLayout.bindings[UBOShadow::BINDING] = UBOShadow::DESCRIPTOR;
+    globalDescriptorSetLayout.blocks[UBODebugView::NAME] = UBODebugView::LAYOUT;
+    globalDescriptorSetLayout.bindings[UBODebugView::BINDING] = UBODebugView::DESCRIPTOR;
     globalDescriptorSetLayout.samplers[SHADOWMAP::NAME] = SHADOWMAP::LAYOUT;
     globalDescriptorSetLayout.bindings[SHADOWMAP::BINDING] = SHADOWMAP::DESCRIPTOR;
     globalDescriptorSetLayout.samplers[ENVIRONMENT::NAME] = ENVIRONMENT::LAYOUT;
