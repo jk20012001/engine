@@ -108,7 +108,7 @@ CCProgram macro-remapping %{
   #define CC_SURFACES_USE_VERTEX_COLOR USE_VERTEX_COLOR
 #if IS_ANISOTROPY || USE_NORMAL_MAP
   #define CC_SURFACES_USE_TANGENT_SPACE 1
-#endif  
+#endif
 
   // functionality for each effect
   #define CC_SURFACES_LIGHTING_ANISOTROPIC_ENVCONVOLUTION_COUNT 31
@@ -209,7 +209,7 @@ CCProgram surface-fragment %{
   vec3 SurfacesFragmentModifyWorldNormal()
   {
       vec3 normal = FSInput_worldNormal;
-    #if USE_NORMAL_MAP
+    #if USE_NORMAL_MAP && CC_SURFACES_USE_TANGENT_SPACE
       vec3 nmmp = texture(normalMap, NORMAL_UV).xyz - vec3(0.5);
       normal = CalculateNormalFromTangentSpace(nmmp, emissiveScaleParam.w, normal.xyz, FSInput_worldTangent, FSInput_mirrorNormal);
     #endif
@@ -269,7 +269,7 @@ CCProgram standard-vs %{
   #include <macro-remapping>
   #include <surfaces/effect-macros/common-macros>
 
-  // 2. common include with corresponding shader stage
+  // 2. common include with corresponding shader stage, include before surface functions
   #include <surfaces/includes/common-vs>
 
   // 3. user surface functions that can use user (effect) parameters (ubo Constants)
@@ -307,7 +307,7 @@ CCProgram standard-fs %{
   #include <macro-remapping>
   #include <surfaces/effect-macros/common-macros>
 
-  // 2. common include with corresponding shader stage
+  // 2. common include with corresponding shader stage, include before surface functions
   #include <surfaces/includes/common-fs>
 
   // 3. user surface functions that can use user (effect) parameters (ubo Constants)
