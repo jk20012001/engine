@@ -23,7 +23,7 @@
  THE SOFTWARE.
  */
 
-import { UBOGlobal, UBOShadow, UBOCamera, UNIFORM_SHADOWMAP_BINDING,
+import { UBOGlobal, UBOShadow, UBOCamera, UBODebugView, UNIFORM_SHADOWMAP_BINDING,
     supportsR32FloatTexture, UNIFORM_SPOT_LIGHTING_MAP_TEXTURE_BINDING,
 } from './define';
 import { Device, BufferInfo, BufferUsageBit, MemoryUsageBit, DescriptorSet } from '../gfx';
@@ -38,6 +38,7 @@ import { DirectionalLight, SpotLight } from '../renderer/scene';
 import { RenderWindow } from '../renderer/core/render-window';
 import { builtinResMgr } from '../builtin/builtin-res-mgr';
 import { Texture2D } from '../assets';
+import { DebugView, DebugViewCompositeType } from './debug-view';
 
 const _matShadowView = new Mat4();
 const _matShadowProj = new Mat4();
@@ -300,9 +301,23 @@ export class PipelineUBO {
         Color.toArray(sv, shadowInfo.shadowColor, UBOShadow.SHADOW_COLOR_OFFSET);
     }
 
+    public static updateDebugViewUBOView (pipeline: RenderPipeline, bufferView: Float32Array, camera : Camera) {
+        const device = pipeline.device;
+        const debugView = legacyCC.debugView;
+        const sv = bufferView;
+
+        sv[UBODebugView.SINGLE_MODE] = debugView.singleMode as number;
+        sv[UBODebugView.LIGHTING_ENABLE_WITH_ALBEDO] = debugView.lightingWithAlbedo ? 1.0 : 0.0;
+        sv[UBODebugView.MISC_ENABLE_CSM_LAYER_COLORATION] = debugView.csmLayerColoration ? 1.0 : 0.0;
+        for (let i = DebugViewCompositeType.DIRECT_DIFFUSE as number; i < DebugViewCompositeType.MAX_BIT_COUNT; i++) {
+            sv[UBODebugView.COMPOSITE_ENABLE_DIRECT_DIFFUSE + i] = debugView.isCompositeModeEnabled(i) ? 1.0 : 0.0;
+        }
+    }
+
     protected _globalUBO = new Float32Array(UBOGlobal.COUNT);
     protected _cameraUBO = new Float32Array(UBOCamera.COUNT);
     protected _shadowUBO = new Float32Array(UBOShadow.COUNT);
+    protected _debugViewUBO = new Float32Array(UBODebugView.COUNT);
     static _combineSignY = 0;
     protected declare _device: Device;
     protected declare _pipeline: RenderPipeline;
@@ -345,6 +360,7 @@ export class PipelineUBO {
             UBOCamera.SIZE,
         ));
         ds.bindBuffer(UBOCamera.BINDING, cameraUBO);
+
         const shadowUBO = device.createBuffer(new BufferInfo(
             BufferUsageBit.UNIFORM | BufferUsageBit.TRANSFER_DST,
             MemoryUsageBit.HOST | MemoryUsageBit.DEVICE,
@@ -352,6 +368,14 @@ export class PipelineUBO {
             UBOShadow.SIZE,
         ));
         ds.bindBuffer(UBOShadow.BINDING, shadowUBO);
+
+        const debugViewUBO = device.createBuffer(new BufferInfo(
+            BufferUsageBit.UNIFORM | BufferUsageBit.TRANSFER_DST,
+            MemoryUsageBit.HOST | MemoryUsageBit.DEVICE,
+            UBODebugView.SIZE,
+            UBODebugView.SIZE,
+        ));
+        ds.bindBuffer(UBODebugView.BINDING, debugViewUBO);
     }
 
     /**
@@ -412,6 +436,14 @@ export class PipelineUBO {
         } else if (data instanceof Color) {
             Color.toArray(this._shadowUBO, data, offset);
         }
+    }
+
+    public updateDebugViewUBO (camera : Camera) {
+        const ds = this._pipeline.descriptorSet;
+        const cmdBuffer = this._pipeline.commandBuffers;
+        PipelineUBO.updateDebugViewUBOView(this._pipeline, this._debugViewUBO, camera);
+        ds.update();
+        cmdBuffer[0].updateBuffer(ds.getBuffer(UBODebugView.BINDING), this._debugViewUBO);
     }
 
     public destroy () {

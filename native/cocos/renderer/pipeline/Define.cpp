@@ -310,6 +310,38 @@ const gfx::UniformBlock UBOUILocal::LAYOUT = {
     1,
 };
 
+const ccstd::string UBODebugView::NAME = "CCDebugView";
+const gfx::DescriptorSetLayoutBinding UBODebugView::DESCRIPTOR = {
+    UBODebugView::BINDING,
+    gfx::DescriptorType::UNIFORM_BUFFER,
+    1,
+    gfx::ShaderStageFlagBit::ALL,
+    {},
+};
+const gfx::UniformBlock UBODebugView::LAYOUT = {
+    globalSet,
+    UBODebugView::BINDING,
+    UBODebugView::NAME,
+    {
+        {"cc_debug_view_single_mode", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_lighting_enable_with_albedo", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_misc_enable_csm_layer_coloration", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_direct_diffuse", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_direct_specular", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_env_diffuse", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_env_specular", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_emissive", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_light_map", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_shadow", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_ao", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_normal_map", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_fog", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_tone_mapping", gfx::Type::FLOAT, 1},
+        {"cc_debug_view_composite_enable_gamma_correction", gfx::Type::FLOAT, 1},
+    },
+    1,
+};
+
 const ccstd::string SHADOWMAP::NAME = "cc_shadowMap";
 const gfx::DescriptorSetLayoutBinding SHADOWMAP::DESCRIPTOR = {
     SHADOWMAP::BINDING,

@@ -218,6 +218,7 @@ enum class CC_DLL PipelineGlobalBindings {
     UBO_GLOBAL,
     UBO_CAMERA,
     UBO_SHADOW,
+    UBO_DEBUG_VIEW,
 
     SAMPLER_SHADOWMAP,
     SAMPLER_ENVIRONMENT,
@@ -460,6 +461,30 @@ struct CC_DLL UBOShadow {
     static constexpr uint COUNT = UBOShadow::PLANAR_NORMAL_DISTANCE_INFO_OFFSET + 4;
     static constexpr uint SIZE = UBOShadow::COUNT * 4;
     static constexpr uint BINDING = static_cast<uint>(PipelineGlobalBindings::UBO_SHADOW);
+    static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
+    static const gfx::UniformBlock LAYOUT;
+    static const ccstd::string NAME;
+};
+
+struct CC_DLL UBODebugView {
+    static constexpr uint SINGLE_MODE_OFFSET = 0;
+    static constexpr uint LIGHTING_ENABLE_WITH_ALBEDO_OFFSET = SINGLE_MODE_OFFSET + 4;
+    static constexpr uint MISC_ENABLE_CSM_LAYER_COLORATION_OFFSET = LIGHTING_ENABLE_WITH_ALBEDO_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_DIRECT_DIFFUSE_OFFSET = MISC_ENABLE_CSM_LAYER_COLORATION_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_DIRECT_SPECULAR_OFFSET = COMPOSITE_ENABLE_DIRECT_DIFFUSE_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_ENV_DIFFUSE_OFFSET = COMPOSITE_ENABLE_DIRECT_SPECULAR_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_ENV_SPECULAR_OFFSET = COMPOSITE_ENABLE_ENV_DIFFUSE_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_EMISSIVE_OFFSET = COMPOSITE_ENABLE_ENV_SPECULAR_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_LIGHT_MAP_OFFSET = COMPOSITE_ENABLE_EMISSIVE_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_SHADOW_OFFSET = COMPOSITE_ENABLE_LIGHT_MAP_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_AO_OFFSET = COMPOSITE_ENABLE_SHADOW_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_NORMAL_MAP_OFFSET = COMPOSITE_ENABLE_AO_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_FOG_OFFSET = COMPOSITE_ENABLE_NORMAL_MAP_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_TONE_MAPPING_OFFSET = COMPOSITE_ENABLE_FOG_OFFSET + 4;
+    static constexpr uint COMPOSITE_ENABLE_GAMMA_CORRECTION_OFFSET = COMPOSITE_ENABLE_TONE_MAPPING_OFFSET + 4;
+    static constexpr uint COUNT = COMPOSITE_ENABLE_GAMMA_CORRECTION_OFFSET + 4;
+    static constexpr uint SIZE = COUNT * 4;
+    static constexpr uint BINDING = static_cast<uint>(PipelineGlobalBindings::UBO_DEBUG_VIEW);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock LAYOUT;
     static const ccstd::string NAME;

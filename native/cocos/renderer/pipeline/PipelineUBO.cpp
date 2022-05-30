@@ -317,6 +317,19 @@ void PipelineUBO::updateShadowUBOLightView(const RenderPipeline *pipeline, ccstd
     memcpy(shadowUBO.data() + UBOShadow::SHADOW_COLOR_OFFSET, shadowInfo->getShadowColor4f().data(), sizeof(float) * 4);
 }
 
+void PipelineUBO::updateDebugViewUBOView(const RenderPipeline *pipeline, ccstd::array<float, UBODebugView::COUNT> *bufferView) {
+    auto *device = gfx::Device::getInstance();
+    //const debugView = legacyCC.debugView;
+    auto &debugViewUBO = *bufferView;
+    float zero = 0.0f, one = 0.0f;
+    memcpy(debugViewUBO.data() + UBODebugView::SINGLE_MODE_OFFSET, &zero, sizeof(float));
+    memcpy(debugViewUBO.data() + UBODebugView::LIGHTING_ENABLE_WITH_ALBEDO_OFFSET, &one, sizeof(float));
+    memcpy(debugViewUBO.data() + UBODebugView::MISC_ENABLE_CSM_LAYER_COLORATION_OFFSET, &zero, sizeof(float));
+    for (int i = UBODebugView::COMPOSITE_ENABLE_DIRECT_DIFFUSE_OFFSET; i < UBODebugView::SIZE; i += sizeof(float)) {
+        memcpy(debugViewUBO.data() + UBODebugView::COMPOSITE_ENABLE_DIRECT_DIFFUSE_OFFSET + i, &one, sizeof(float));
+    }
+}
+
 static uint8_t combineSignY = 0;
 uint8_t PipelineUBO::getCombineSignY() {
     return combineSignY;
@@ -372,6 +385,16 @@ void PipelineUBO::activate(gfx::Device *device, RenderPipeline *pipeline) {
     });
     descriptorSet->bindBuffer(UBOShadow::BINDING, shadowUBO);
     _ubos.push_back(shadowUBO);
+
+    auto *debugViewUBO = _device->createBuffer({
+        gfx::BufferUsageBit::UNIFORM | gfx::BufferUsageBit::TRANSFER_DST,
+        gfx::MemoryUsageBit::DEVICE,
+        UBODebugView::SIZE,
+        UBODebugView::SIZE,
+        gfx::BufferFlagBit::NONE,
+    });
+    descriptorSet->bindBuffer(UBODebugView::BINDING, debugViewUBO);
+    _ubos.push_back(debugViewUBO);
 }
 
 void PipelineUBO::destroy() {
@@ -447,6 +470,13 @@ void PipelineUBO::updateShadowUBOLight(gfx::DescriptorSet *globalDS, const scene
     PipelineUBO::updateShadowUBOLightView(_pipeline, &_shadowUBO, light);
     globalDS->update();
     cmdBuffer->updateBuffer(globalDS->getBuffer(UBOShadow::BINDING), _shadowUBO.data(), UBOShadow::SIZE);
+}
+
+void PipelineUBO::updateDebugViewUBO(gfx::DescriptorSet *globalDS) {
+    auto *const cmdBuffer = _pipeline->getCommandBuffers()[0];
+    PipelineUBO::updateDebugViewUBOView(_pipeline, &_debugViewUBO);
+    globalDS->update();
+    cmdBuffer->updateBuffer(globalDS->getBuffer(UBODebugView::BINDING), _debugViewUBO.data(), UBODebugView::SIZE);
 }
 
 void PipelineUBO::updateShadowUBORange(uint offset, const Mat4 *data) {

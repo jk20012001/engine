@@ -93,6 +93,7 @@ bool RenderPipeline::activate(gfx::Swapchain * /*swapchain*/) {
         flow->activate(this);
     }
 
+    //legacyCC.debugView.activate();
     return true;
 }
 
