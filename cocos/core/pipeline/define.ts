@@ -113,6 +113,7 @@ export enum PipelineGlobalBindings {
     UBO_GLOBAL,
     UBO_CAMERA,
     UBO_SHADOW,
+    UBO_DEBUG_VIEW,
 
     SAMPLER_SHADOWMAP,
     SAMPLER_ENVIRONMENT, // don't put this as the first sampler binding due to Mac GL driver issues: cubemap at texture unit 0 causes rendering issues
@@ -501,6 +502,52 @@ export class UBOUILocal { // pre one vec4
 }
 localDescriptorSetLayout.layouts[UBOUILocal.NAME] = UBOUILocal.LAYOUT;
 localDescriptorSetLayout.bindings[UBOUILocal.BINDING] = UBOUILocal.DESCRIPTOR;
+
+/**
+ * @en The uniform buffer object for debug view
+ * @zh 渲染调试 UBO。
+ */
+export class UBODebugView {
+    public static readonly SINGLE_MODE = 0;
+    public static readonly LIGHTING_ENABLE_WITH_ALBEDO = UBODebugView.SINGLE_MODE + 1;
+    public static readonly MISC_ENABLE_CSM_LAYER_COLORATION = UBODebugView.LIGHTING_ENABLE_WITH_ALBEDO + 1;
+    public static readonly COMPOSITE_ENABLE_DIRECT_DIFFUSE = UBODebugView.MISC_ENABLE_CSM_LAYER_COLORATION + 1;
+    public static readonly COMPOSITE_ENABLE_DIRECT_SPECULAR = UBODebugView.COMPOSITE_ENABLE_DIRECT_DIFFUSE + 1;
+    public static readonly COMPOSITE_ENABLE_ENV_DIFFUSE = UBODebugView.COMPOSITE_ENABLE_DIRECT_SPECULAR + 1;
+    public static readonly COMPOSITE_ENABLE_ENV_SPECULAR = UBODebugView.COMPOSITE_ENABLE_ENV_DIFFUSE + 1;
+    public static readonly COMPOSITE_ENABLE_EMISSIVE = UBODebugView.COMPOSITE_ENABLE_ENV_SPECULAR + 1;
+    public static readonly COMPOSITE_ENABLE_LIGHT_MAP = UBODebugView.COMPOSITE_ENABLE_EMISSIVE + 1;
+    public static readonly COMPOSITE_ENABLE_SHADOW = UBODebugView.COMPOSITE_ENABLE_LIGHT_MAP + 1;
+    public static readonly COMPOSITE_ENABLE_AO = UBODebugView.COMPOSITE_ENABLE_SHADOW + 1;
+    public static readonly COMPOSITE_ENABLE_NORMAL_MAP = UBODebugView.COMPOSITE_ENABLE_AO + 1;
+    public static readonly COMPOSITE_ENABLE_FOG = UBODebugView.COMPOSITE_ENABLE_NORMAL_MAP + 1;
+    public static readonly COMPOSITE_ENABLE_TONE_MAPPING = UBODebugView.COMPOSITE_ENABLE_FOG + 1;
+    public static readonly COMPOSITE_ENABLE_GAMMA_CORRECTION = UBODebugView.COMPOSITE_ENABLE_TONE_MAPPING + 1;
+    public static readonly COUNT : number = UBODebugView.COMPOSITE_ENABLE_GAMMA_CORRECTION + 1;
+    public static readonly SIZE = UBODebugView.COUNT * 4;
+    public static readonly NAME = 'CCDebugView';
+    public static readonly BINDING = PipelineGlobalBindings.UBO_DEBUG_VIEW;
+    public static readonly DESCRIPTOR = new DescriptorSetLayoutBinding(UBODebugView.BINDING, DescriptorType.UNIFORM_BUFFER, 1, ShaderStageFlagBit.ALL);
+    public static readonly LAYOUT = new UniformBlock(SetIndex.GLOBAL, UBODebugView.BINDING, UBODebugView.NAME, [
+        new Uniform('cc_debug_view_single_mode', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_lighting_enable_with_albedo', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_misc_enable_csm_layer_coloration', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_direct_diffuse', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_direct_specular', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_env_diffuse', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_env_specular', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_emissive', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_light_map', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_shadow', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_ao', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_normal_map', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_fog', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_tone_mapping', Type.FLOAT, 1),
+        new Uniform('cc_debug_view_composite_enable_gamma_correction', Type.FLOAT, 1),
+    ], 1);
+}
+globalDescriptorSetLayout.layouts[UBODebugView.NAME] = UBODebugView.LAYOUT;
+globalDescriptorSetLayout.bindings[UBODebugView.BINDING] = UBODebugView.DESCRIPTOR;
 
 /**
  * @en The sampler for joint texture
