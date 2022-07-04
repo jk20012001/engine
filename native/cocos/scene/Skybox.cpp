@@ -236,14 +236,15 @@ void Skybox::setEnvMaps(TextureCube *envmapHDR, TextureCube *envmapLDR) {
     }
 
     updateGlobalBinding();
-    updatePipeline();
+    updateSkybox();
+    updatePipelineWithCompileShaders();
 }
 
 void Skybox::setDiffuseMaps(TextureCube *diffuseMapHDR, TextureCube *diffuseMapLDR) {
     _diffuseMapHDR = diffuseMapHDR;
     _diffuseMapLDR = diffuseMapLDR;
     updateGlobalBinding();
-    updatePipeline();
+    updatePipelineWithCompileShaders();
 }
 
 void Skybox::setSkyboxMaterial(Material *skyboxMat) {
@@ -291,19 +292,31 @@ void Skybox::activate() {
         _model->initSubModel(0, _mesh->getRenderingSubMeshes()[0], _material);
     }
 
+    const bool isHDR = Root::getInstance()->getPipeline()->getPipelineSceneData()->isHDR();
+
     if (!getEnvmap()) {
-        setEnvmap(_default.get());
+        if (isHDR) {
+            _envmapHDR = _default.get();
+        } else {
+            _envmapLDR = _default.get();
+        }
+        pipeline->getPipelineSceneData()->getAmbient()->setMipmapCount(_default.get()->mipmapLevel());
     }
 
     if (!getDiffuseMap()) {
-        setDiffuseMap(_default.get());
+        if (isHDR) {
+            _diffuseMapHDR = _default.get();
+        } else {
+            _diffuseMapLDR = _default.get();
+        }
     }
 
     updateGlobalBinding();
+    updateSkybox();
     updatePipeline();
 }
 
-void Skybox::updatePipeline() const {
+void Skybox::updateSkybox() const {
     if (isEnabled() && _material != nullptr) {
         _material->recompileShaders({{"USE_RGBE_CUBEMAP", isRGBE()}});
     }
@@ -311,7 +324,9 @@ void Skybox::updatePipeline() const {
     if (_model != nullptr && _material != nullptr) {
         _model->setSubModelMaterial(0, _material);
     }
+}
 
+bool Skybox::updatePipeline() const {
     Root *root = Root::getInstance();
     auto *pipeline = root->getPipeline();
 
@@ -374,8 +389,12 @@ void Skybox::updatePipeline() const {
         valueChanged = true;
     }
 
-    if (valueChanged) {
-        root->onGlobalPipelineStateChanged();
+    return valueChanged;
+}
+
+void Skybox::updatePipelineWithCompileShaders() const {
+    if (updatePipeline()) {
+        Root::getInstance()->onGlobalPipelineStateChanged();
     }
 }
 

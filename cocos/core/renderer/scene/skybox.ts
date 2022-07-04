@@ -91,7 +91,7 @@ export class Skybox {
 
     set enabled (val: boolean) {
         this._enabled = val;
-        if (val) this.activate(); else this._updatePipeline();
+        if (val) this.activate(); else this._updateSkybox();
     }
 
     /**
@@ -117,7 +117,7 @@ export class Skybox {
 
     set useIBL (val: boolean) {
         this._useIBL = val;
-        this._updatePipeline();
+        this._updatePipelineWithCompileShaders();
     }
 
     /**
@@ -130,7 +130,7 @@ export class Skybox {
 
     set useDiffuseMap (val: boolean) {
         this._useDiffuseMap = val;
-        this._updatePipeline();
+        this._updatePipelineWithCompileShaders();
     }
 
     /**
@@ -207,8 +207,9 @@ export class Skybox {
         } else {
             this._editableMaterial = null;
         }
-        this._updatePipeline();
+        this._updateSkybox();
     }
+
     protected _envmapLDR: TextureCube | null = null;
     protected _envmapHDR: TextureCube | null = null;
     protected _diffuseMapLDR: TextureCube | null = null;
@@ -240,7 +241,8 @@ export class Skybox {
         this._envmapLDR = envmapLDR;
 
         this._updateGlobalBinding();
-        this._updatePipeline();
+        this._updateSkybox();
+        this._updatePipelineWithCompileShaders();
     }
 
     /**
@@ -253,7 +255,7 @@ export class Skybox {
         this._diffuseMapHDR = diffuseMapHDR;
         this._diffuseMapLDR = diffuseMapLDR;
         this._updateGlobalBinding();
-        this._updatePipeline();
+        this._updatePipelineWithCompileShaders();
     }
 
     public activate () {
@@ -292,19 +294,48 @@ export class Skybox {
             }
         }
 
+        const isHDR = pipeline.pipelineSceneData.isHDR;
+
         if (!this.envmap) {
-            this.envmap = this._default;
+            if (isHDR) {
+                this._envmapHDR = this._default;
+            } else {
+                this._envmapLDR = this._default;
+            }
         }
 
         if (!this.diffuseMap) {
-            this.diffuseMap = this._default;
+            if (isHDR) {
+                this._diffuseMapHDR = this._default;
+            } else {
+                this._diffuseMapLDR = this._default;
+            }
         }
 
         this._updateGlobalBinding();
+        this._updateSkybox();
         this._updatePipeline();
     }
 
-    protected _updatePipeline () {
+    protected _updateSkybox () {
+        if (this.enabled) {
+            if (this._editableMaterial) {
+                this._editableMaterial.recompileShaders({ USE_RGBE_CUBEMAP: this.isRGBE });
+            } else if (skybox_material) {
+                skybox_material.recompileShaders({ USE_RGBE_CUBEMAP: this.isRGBE });
+            }
+        }
+
+        if (this._model) {
+            if (this._editableMaterial) {
+                this._model.setSubModelMaterial(0, this._editableMaterial);
+            } else {
+                this._model.setSubModelMaterial(0, skybox_material!);
+            }
+        }
+    }
+
+    protected _updatePipeline () : boolean {
         const root = legacyCC.director.root as Root;
         const pipeline = root.pipeline;
 
@@ -322,23 +353,16 @@ export class Skybox {
             pipeline.macros.CC_USE_HDR = useHDRValue;
             pipeline.macros.CC_IBL_CONVOLUTED = useConvMapValue;
 
+            return true;
+        }
+
+        return false;
+    }
+
+    protected _updatePipelineWithCompileShaders () {
+        const root = legacyCC.director.root as Root;
+        if (this._updatePipeline()) {
             root.onGlobalPipelineStateChanged();
-        }
-
-        if (this.enabled) {
-            if (this._editableMaterial) {
-                this._editableMaterial.recompileShaders({ USE_RGBE_CUBEMAP: this.isRGBE });
-            } else if (skybox_material) {
-                skybox_material.recompileShaders({ USE_RGBE_CUBEMAP: this.isRGBE });
-            }
-        }
-
-        if (this._model) {
-            if (this._editableMaterial) {
-                this._model.setSubModelMaterial(0, this._editableMaterial);
-            } else {
-                this._model.setSubModelMaterial(0, skybox_material!);
-            }
         }
     }
 
