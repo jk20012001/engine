@@ -89,7 +89,7 @@ export class Fog {
         this._enabled = val;
         if (!val) {
             this._type = FOG_TYPE_NONE;
-            this._updatePipeline();
+            this._updatePipelineWithCompileShaders();
         } else {
             this.activate();
         }
@@ -105,7 +105,7 @@ export class Fog {
      */
     set accurate (val: boolean) {
         this._accurate = val;
-        this._updatePipeline();
+        this._updatePipelineWithCompileShaders();
     }
 
     get accurate (): boolean {
@@ -143,7 +143,7 @@ export class Fog {
     }
     set type (val: number) {
         this._type = this.enabled ? val : FOG_TYPE_NONE;
-        if (this.enabled) this._updatePipeline();
+        if (this.enabled) this._updatePipelineWithCompileShaders();
     }
 
     /**
@@ -248,17 +248,26 @@ export class Fog {
         this._updatePipeline();
     }
 
-    protected _updatePipeline () {
+    protected _updatePipeline () : boolean {
         const root = legacyCC.director.root;
+        const pipeline = root.pipeline;
+
         const value = this.enabled ? this.type : FOG_TYPE_NONE;
         const accurateValue = this.accurate ? 1 : 0;
-        const pipeline = root.pipeline;
         if (pipeline.macros.CC_USE_FOG === value && pipeline.macros.CC_USE_ACCURATE_FOG === accurateValue) {
-            return;
+            return false;
+        } else {
+            pipeline.macros.CC_USE_FOG = value;
+            pipeline.macros.CC_USE_ACCURATE_FOG = accurateValue;
+            return true;
         }
-        pipeline.macros.CC_USE_FOG = value;
-        pipeline.macros.CC_USE_ACCURATE_FOG = accurateValue;
-        root.onGlobalPipelineStateChanged();
+    }
+
+    protected _updatePipelineWithCompileShaders () {
+        const root = legacyCC.director.root;
+        if (this._updatePipeline()) {
+            root.onGlobalPipelineStateChanged();
+        }
     }
 }
 

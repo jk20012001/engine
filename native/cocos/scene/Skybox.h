@@ -214,7 +214,7 @@ public:
         if (val) {
             activate();
         } else {
-            updatePipeline();
+            updatePipelineWithCompileShaders();
         }
     }
 
@@ -235,7 +235,7 @@ public:
     inline bool isUseIBL() const { return _useIBL; }
     inline void setUseIBL(bool val) {
         _useIBL = val;
-        updatePipeline();
+        updatePipelineWithCompileShaders();
     }
 
     /**
@@ -276,7 +276,9 @@ public:
     void setSkyboxMaterial(Material* skyboxMat);
 
 private:
-    void updatePipeline() const;
+    void updateSkybox() const;
+    bool updatePipeline() const;
+    void updatePipelineWithCompileShaders() const;
     void updateGlobalBinding();
 
     IntrusivePtr<TextureCube> _envmapLDR;

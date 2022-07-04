@@ -88,7 +88,7 @@ public:
         _enabled = val;
         if (!val) {
             _type = FogType::NONE;
-            updatePipeline();
+            updatePipelineWithCompileShaders();
         } else {
             activate();
         }
@@ -101,7 +101,7 @@ public:
      */
     inline void setAccurate(bool val) {
         _accurate = val;
-        updatePipeline();
+        updatePipelineWithCompileShaders();
     }
     inline bool isAccurate() const { return _accurate; }
 
@@ -127,7 +127,7 @@ public:
     inline void setType(FogType val) {
         _type = _enabled ? val : FogType::NONE;
         if (_enabled) {
-            updatePipeline();
+            updatePipelineWithCompileShaders();
         }
     }
 
@@ -177,7 +177,8 @@ public:
     const Vec4 &getColorArray() const { return _colorArray; }
 
 private:
-    void updatePipeline();
+    bool updatePipeline();
+    void updatePipelineWithCompileShaders();
 
     Color _fogColor{200, 200, 200, 255};
     Vec4 _colorArray{0.2F, 0.2F, 0.2F, 1.0F};
