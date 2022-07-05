@@ -166,13 +166,15 @@ TextureCube *SkyboxInfo::getDiffuseMap() const {
 
 void SkyboxInfo::activate(Skybox *resource) {
     _resource = resource; // weak reference
-    setEnvLightingType(this->_envLightingType);
     if (_resource != nullptr) {
+        _resource->setEnableCompileShaders(false);
+        setEnvLightingType(this->_envLightingType);
         _resource->initialize(*this);
         _resource->setEnvMaps(_envmapHDR, _envmapLDR);
         _resource->setDiffuseMaps(_diffuseMapHDR, _diffuseMapLDR);
         _resource->setSkyboxMaterial(_editableMaterial);
         _resource->activate(); // update global DS first
+        _resource->setEnableCompileShaders(true);
     }
 }
 
@@ -331,7 +333,7 @@ bool Skybox::updatePipeline() const {
     auto *pipeline = root->getPipeline();
 
     const bool useRGBE = isRGBE();
-    const int32_t useIBLValue = isUseIBL() ? (useRGBE ? 2 : 1) : 0;
+    const int32_t useIBLValue = 2;//isUseIBL() ? (useRGBE ? 2 : 1) : 0;
     const int32_t useDiffuseMapValue = (isUseIBL() && isUseDiffuseMap() && getDiffuseMap() != nullptr) ? (useRGBE ? 2 : 1) : 0;
     const bool useHDRValue = isUseHDR();
     const bool useConvMapValue = isUsingConvolutionMap();
@@ -393,7 +395,7 @@ bool Skybox::updatePipeline() const {
 }
 
 void Skybox::updatePipelineWithCompileShaders() const {
-    if (updatePipeline()) {
+    if (updatePipeline() && _enableCompileShaders) {
         Root::getInstance()->onGlobalPipelineStateChanged();
     }
 }

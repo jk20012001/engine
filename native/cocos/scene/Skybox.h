@@ -275,6 +275,8 @@ public:
     void setDiffuseMap(TextureCube *val);
     void setSkyboxMaterial(Material* skyboxMat);
 
+    inline void setEnableCompileShaders(bool val) { _enableCompileShaders = val; }
+
 private:
     void updateSkybox() const;
     bool updatePipeline() const;
@@ -294,6 +296,7 @@ private:
     bool _useIBL{false};
     bool _useHDR{true};
     bool _useDiffuseMap{false};
+    bool _enableCompileShaders{true};
     IntrusivePtr<Material> _editableMaterial;
 
     CC_DISALLOW_COPY_MOVE_ASSIGN(Skybox);
