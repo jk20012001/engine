@@ -93,7 +93,7 @@ void InstancedBuffer::merge(const scene::SubModel *subModel, scene::InstancedAtt
         if (instance.descriptorSet != descriptorSet) {
             instance.descriptorSet = descriptorSet;
         }
-        memcpy(instance.data + instance.stride * instance.count++, attrs.buffer.buffer(), stride);
+        memcpy(instance.data + instance.stride * instance.count++, attrs.buffer.buffer()->getData(), stride);
         _hasPendingModels = true;
         return;
     }
@@ -122,7 +122,7 @@ void InstancedBuffer::merge(const scene::SubModel *subModel, scene::InstancedAtt
     }
 
     auto *data = static_cast<uint8_t *>(CC_MALLOC(newSize));
-    memcpy(data, attrs.buffer.buffer(), stride);
+    memcpy(data, attrs.buffer.buffer()->getData(), stride);
     vertexBuffers.emplace_back(vb);
     const gfx::InputAssemblerInfo iaInfo = {attributes, vertexBuffers, indexBuffer};
     auto *ia = _device->createInputAssembler(iaInfo);

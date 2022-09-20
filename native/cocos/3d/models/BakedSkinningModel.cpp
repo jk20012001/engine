@@ -194,7 +194,7 @@ void BakedSkinningModel::updateInstancedJointTextureInfo() {
     const index_t idx = _instAnimInfoIdx;
     for (auto it = _instancedAttributes.begin(); it != _instancedAttributes.end(); ++it) {
         auto &views = it->second.views;
-        if (idx >= 0) {
+        if (idx >= 0 && !views.empty()) {
             auto &view = views[idx];
             setTypedArrayValue(view, 0, *animInfo.curFrame); //NOTE: curFrame is only used in JSB.
             setTypedArrayValue(view, 1, jointTextureInfo[1]);
