@@ -63,7 +63,7 @@ public:
     inline void setPriority(pipeline::RenderPriority priority) { _priority = priority; }
     inline void setOwner(Model *model) { _owner = model; }
     void setSubMesh(RenderingSubMesh *subMesh);
-    inline void setWorldMatrixIndex(int32_t worldMatrixIndex) { _worldMatrixIndex = worldMatrixIndex; }
+    inline void setInstancedWorldMatrixIndex(int32_t worldMatrixIndex) { _instancedWorldMatrixIndex = worldMatrixIndex; }
 
     inline gfx::DescriptorSet *getDescriptorSet() const { return _descriptorSet; }
     inline gfx::DescriptorSet *getWorldBoundDescriptorSet() const { return _worldBoundDescriptorSet; }
@@ -78,7 +78,7 @@ public:
     inline Model *getOwner() const { return _owner; }
     inline uint32_t getId() const { return _id; }
     inline InstancedAttributeBlock &getInstancedAttributeBlock() { return _instancedAttributeBlock; }
-    inline int32_t getWorldMatrixIndex() const { return _worldMatrixIndex; }
+    inline int32_t getInstancedWorldMatrixIndex() const { return _instancedWorldMatrixIndex; }
 
     void initialize(RenderingSubMesh *subMesh, const std::shared_ptr<ccstd::vector<IntrusivePtr<Pass>>> &passes, const ccstd::vector<IMacroPatch> &patches);
     void initPlanarShadowShader();
@@ -94,7 +94,7 @@ protected:
     pipeline::RenderPriority _priority{pipeline::RenderPriority::DEFAULT};
 
     int32_t _id{-1};
-    int32_t _worldMatrixIndex{-1};
+    int32_t _instancedWorldMatrixIndex{-1};
 
     gfx::Device *_device{nullptr};
     Model *_owner{nullptr};

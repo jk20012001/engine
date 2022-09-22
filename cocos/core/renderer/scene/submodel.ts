@@ -63,7 +63,7 @@ export class SubModel {
     protected _reflectionTex: Texture | null = null;
     protected _reflectionSampler: Sampler | null = null;
     protected _instancedAttributeBlock: IInstancedAttributeBlock = { buffer: null!, views: [], attributes: [] };
-    protected _worldMatrixIndex = -1;
+    protected _instancedWorldMatrixIndex = -1;
 
     /**
      * @en
@@ -195,11 +195,11 @@ export class SubModel {
      * @en Get or set instance matrix id, access by sub model
      * @zh 获取或者设置硬件实例化中的矩阵索引，通过子模型访问
      */
-    set worldMatrixIndex (val : number) {
-        this._worldMatrixIndex = val;
+    set instancedWorldMatrixIndex (val : number) {
+        this._instancedWorldMatrixIndex = val;
     }
-    get worldMatrixIndex () {
-        return this._worldMatrixIndex;
+    get instancedWorldMatrixIndex () {
+        return this._instancedWorldMatrixIndex;
     }
 
     /**

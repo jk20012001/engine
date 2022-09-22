@@ -110,7 +110,7 @@ void GbufferStage::dispenseRenderObject2Queues() {
                 if (pass->getPhase() != _phaseID) continue;
                 if (pass->getBatchingScheme() == scene::BatchingSchemes::INSTANCING) {
                     auto *instancedBuffer = pass->getInstancedBuffer();
-                    instancedBuffer->merge(subModel, subModel->getInstancedAttributeBlock(), passIdx);
+                    instancedBuffer->merge(subModel, passIdx);
                     _instancedQueue->add(instancedBuffer);
                 } else if (pass->getBatchingScheme() == scene::BatchingSchemes::VB_MERGING) {
                     auto *batchedBuffer = pass->getBatchedBuffer();
