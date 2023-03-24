@@ -120,7 +120,7 @@
           LightingMiscData miscData;
           miscData.lightType = cc_lightPos[i].w;
           miscData.lightPos = cc_lightPos[i].xyz;
-          miscData.lightDir = normalize(-lightDirWithLength);
+          miscData.lightDir = cc_lightDir[i].xyz;
           miscData.lightColorAndIntensity = cc_lightColor[i];
           miscData.lightSizeRangeAngle = cc_lightSizeRangeAngle[i];
           SurfacesLightingModifyFinalResult(lightingResult, lightingData, surfaceData, miscData);
