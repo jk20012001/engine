@@ -24,7 +24,7 @@
 
 import { EDITOR } from 'internal:constants';
 import { BufferInfo, Buffer, BufferUsageBit, ClearFlagBit, Color, DescriptorSet, LoadOp,
-    Format, Rect, Sampler, StoreOp, Texture, Viewport, MemoryUsageBit } from '../../gfx';
+    Format, Rect, Sampler, StoreOp, Texture, Viewport, MemoryUsageBit, Filter } from '../../gfx';
 import { Camera, CSMLevel, DirectionalLight, Light, LightType, ReflectionProbe, ShadowType, SKYBOX_FLAG, SpotLight } from '../../render-scene/scene';
 import { supportsR32FloatTexture } from '../define';
 import { Pipeline } from './pipeline';
