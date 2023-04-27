@@ -1205,8 +1205,8 @@ class HBAOInfo {
         return this._miscParam;
     }
 
-    get randomTexSize () {
-        return this._randomTexSize;
+    get blurParam () {
+        return this._blurParam;
     }
 
     set uv2DepthTexResolution (val: Vec2) {
@@ -1240,7 +1240,7 @@ class HBAOInfo {
     private _uvDepthToEyePosParams = new Vec4();
     private _radiusParam = new Vec4();
     private _miscParam = new Vec4();
-    private _randomTexSize = new Vec4();
+    private _blurParam = new Vec4();
 
     private _uv2DepthTexResolution = new Vec2(1024);
     private _fSceneScale = 1.0;
@@ -1307,7 +1307,7 @@ class HBAOInfo {
         const gBlurFallOff = INV_LN2 / (2.0 * BlurSigma * BlurSigma);
         const gBlurDepthThreshold = 2.0 * SQRT_LN2 * (this._fSceneScale / this._fBlurSharpness);
         const gInvFullResolution = new Vec2(1.0 / this._uv2DepthTexResolution.x, 1.0 / this._uv2DepthTexResolution.y);
-        this._randomTexSize.set(gBlurFallOff, gBlurDepthThreshold, gInvFullResolution.x, gInvFullResolution.y);
+        this._blurParam.set(gBlurFallOff, gBlurDepthThreshold, gInvFullResolution.x, gInvFullResolution.y);
     }
 
     constructor () {
@@ -1378,7 +1378,8 @@ export function buildHBAOPass (camera: Camera,
     hbaoInfo.hbaoMaterial.setProperty('uvDepthToEyePosParams', hbaoInfo.uvDepthToEyePosParams, 0);
     hbaoInfo.hbaoMaterial.setProperty('radiusParam', hbaoInfo.radiusParam, 0);
     hbaoInfo.hbaoMaterial.setProperty('miscParam', hbaoInfo.miscParam, 0);
-    hbaoInfo.hbaoMaterial.setProperty('randomTexSize', hbaoInfo.randomTexSize, 0);
+    hbaoInfo.hbaoMaterial.setProperty('randomTexSize', new Vec4(4, 4, 1.0 / 4, 1.0 / 4), 0);
+    hbaoInfo.hbaoMaterial.setProperty('blurParam', hbaoInfo.blurParam, 0);
     hbaoPass.addQueue(QueueHint.RENDER_TRANSPARENT | QueueHint.RENDER_OPAQUE).addCameraQuad(
         camera, hbaoInfo.hbaoMaterial, 0,
         SceneFlags.NONE,

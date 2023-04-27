@@ -7,6 +7,7 @@ uniform hbaoUBO {
     vec4 radiusParam;
     vec4 miscParam;
     vec4 randomTexSize;
+    vec4 blurParam;
 };
 
 #define NUM_STEPS 8.0
