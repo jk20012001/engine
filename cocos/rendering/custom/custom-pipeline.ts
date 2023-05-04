@@ -25,7 +25,7 @@
 import { Camera, CameraUsage } from '../../render-scene/scene';
 import { buildFxaaPass, buildBloomPass as buildBloomPasses, buildForwardPass,
     buildNativeDeferredPipeline, buildNativeForwardPass, buildPostprocessPass,
-    AntiAliasing, buildUIPass } from './define';
+    AntiAliasing, buildUIPass, buildHBAOPasses } from './define';
 import { Pipeline, PipelineBuilder } from './pipeline';
 import { isUICamera } from './utils';
 
@@ -47,8 +47,10 @@ export class CustomPipelineBuilder implements PipelineBuilder {
             if (!isUICamera(camera)) {
                 // forward pass
                 const forwardInfo = buildForwardPass(camera, ppl, isGameView);
+                // hbao pass
+                const haboInfo = buildHBAOPasses(camera, ppl, forwardInfo.rtName, forwardInfo.dsName);
                 // fxaa pass
-                const fxaaInfo = buildFxaaPass(camera, ppl, forwardInfo.rtName);
+                const fxaaInfo = buildFxaaPass(camera, ppl, haboInfo.rtName);
                 // bloom passes
                 const bloomInfo = buildBloomPasses(camera, ppl, fxaaInfo.rtName);
                 // Present Pass

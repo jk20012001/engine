@@ -31,9 +31,9 @@ uniform hbaoUBO {
 #define g_Strength miscParam.w
 
 #pragma rate DepthTex pass
-uniform sampler2D DepthTex; //Sample_Point
+uniform sampler2D DepthTex; //Sample_Point_Clamp
 #pragma rate RandomTex
-uniform sampler2D RandomTex; //Sample_Point
+uniform sampler2D RandomTex; //Sample_Point_Wrap
 
 #if __VERSION__ < 300
     float round(float value)
@@ -71,10 +71,15 @@ vec3 UVToEye(vec2 uv, float eye_z)
 }
 
 //----------------------------------------------------------------------------------
+float GetLinearDepth(vec2 uv) {
+  float depth = texture(DepthTex, uv).r;
+  depth = -GetCameraDepthRH(depth, cc_matProj);
+  return depth;
+}
+
 vec3 FetchEyePos(vec2 uv)
 {
-    float depth = texture(DepthTex, uv.xy).r;
-    depth = -GetCameraDepthRH(depth, cc_matProj);
+    float depth = GetLinearDepth(uv);
     return UVToEye(uv, depth);
 }
 
@@ -253,7 +258,7 @@ void ComputeSteps(inout vec2 step_size_uv, inout float numSteps, float ray_radiu
 }
 
 //----------------------------------------------------------------------------------
-float calculateAO(vec2 uv)
+float CalculateAO(vec2 uv)
 {
     vec3 P = FetchEyePos(uv);
 
@@ -302,12 +307,70 @@ float calculateAO(vec2 uv)
   //return vec4(ao, P.z, 0, 0);
 }
 
-vec4 getRandomTex(vec2 uv) {
-  return texture(RandomTex, uv);
+
+///////////////////////////////////////Blur
+#define KERNEL_FALLOFF 3.0f
+#define KERNEL_RADIUS 8
+//#define HALF_KERNEL_RADIUS (KERNEL_RADIUS/2)
+#define HALF_KERNEL_RADIUS 4 // should as same as ubo parameter calculation
+
+#define g_InvFullResolution cc_screenSize.zw
+#define g_BlurFallOff blurParam.x
+#define g_BlurDepthThreshold blurParam.y
+#define g_BlurSimpleRadius blurParam.z
+
+#pragma rate AOTexNearest pass
+uniform sampler2D AOTexNearest; //Sample_Point_Clamp
+// todo: maybe need bilinear filter
+#define AOTexBilinear AOTexNearest
+#define GetLinearDepthBilinear GetLinearDepth
+
+float CrossBilateralWeight(float r, float d, float d0, float blurFalloff, float blurDepthThreshold)
+{
+	return exp2(-r*r*blurFalloff) * (abs(d - d0) < blurDepthThreshold ? 1.0 : 0.0);
 }
 
-vec4 getDepthTex(vec2 uv) {
-  float depth = texture(DepthTex, uv).r;
-  depth = -GetCameraDepthRH(depth, cc_matProj);
-  return vec4(depth, depth, depth, 1.0);
+vec2 SumWeightedAO_Src(int i, float centerCameraDepth, vec2 centerUV, vec2 sampleDir, float blurFalloff, float blurDepthThreshold)
+{
+	// step = 2
+	float r = 2.0 * float(i) + 0.5 - float(KERNEL_RADIUS);
+	vec2 sampleUV = centerUV + r * sampleDir * g_InvFullResolution;
+	float d = GetLinearDepthBilinear(sampleUV);
+	float sampledAO = texture(AOTexNearest/*AOTexBilinear*/, sampleUV).x;
+	float w = CrossBilateralWeight(r, d, centerCameraDepth, blurFalloff, blurDepthThreshold);
+	return vec2(w * sampledAO, w);
+}
+
+vec2 SumWeightedAO(int i, float centerCameraDepth, vec2 centerUV, vec2 sampleDir, float blurFalloff, float blurDepthThreshold)
+{
+	// sample use step 1, and weight use step 2
+	float r_sample = 1.0 * float(i) + 0.5 - float(KERNEL_RADIUS);
+	float r = 2.0 * float(i) + 0.5 - float(KERNEL_RADIUS);
+	vec2 sampleUV = centerUV + r_sample * sampleDir * g_InvFullResolution;
+	float d = GetLinearDepthBilinear(sampleUV);
+	float sampledAO = texture(AOTexNearest/*AOTexBilinear*/, sampleUV).x;
+	float w = CrossBilateralWeight(r, d, centerCameraDepth, blurFalloff, blurDepthThreshold);
+	return vec2(w * sampledAO, w);
+}
+
+float BlurCore(vec2 uv, vec2 sampleDir)
+{
+	float ao = texture(AOTexNearest, uv).x;
+  float weight = 1.0;
+	float centerCameraDepth = GetLinearDepth(uv);
+	for(int i = -HALF_KERNEL_RADIUS; i <= HALF_KERNEL_RADIUS; i++)
+	{
+		vec2 aoAndW = SumWeightedAO(i, centerCameraDepth, uv, sampleDir, g_BlurFallOff, g_BlurDepthThreshold);
+    ao += aoAndW.x;
+    weight += aoAndW.y;
+	}
+	return ao / weight;
+}
+
+///////////////////////////////////////Composite
+#define g_AOSaturation blurParam.w
+float Combine(vec2 uv)
+{
+	float ao = texture(AOTexNearest, uv).x;
+  return pow(ao, g_AOSaturation);
 }
