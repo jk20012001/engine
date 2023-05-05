@@ -1538,7 +1538,7 @@ export function buildHBAOPasses (camera: Camera,
     const root = director.root;
     if (root.debugView) {
         if (root.debugView.isEnabled()
-            && (root.debugView.singleMode != DebugViewSingleType.NONE && root.debugView.singleMode != DebugViewSingleType.AO
+            && (root.debugView.singleMode !== DebugViewSingleType.NONE && root.debugView.singleMode !== DebugViewSingleType.AO
             || !root.debugView.isCompositeModeEnabled(DebugViewCompositeType.AO))) {
             return { rtName: inputRT, dsName: inputDS };
         }
