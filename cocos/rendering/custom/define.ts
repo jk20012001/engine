@@ -1181,16 +1181,6 @@ export function mergeSrcToTargetDesc (fromDesc, toDesc, isForce = false) {
     return extResId;
 }
 
-// should remain same as shader
-export const HALF_KERNEL_RADIUS = 4;
-export const INV_LN2 = 1.44269504;
-export const SQRT_LN2 = 0.8325546;
-const aoRowData: number[] = [
-    238, 91, 87, 255, 251, 44, 119, 255, 247, 64, 250, 255, 232, 5, 225, 255,
-    253, 177, 140, 255, 250, 51, 84, 255, 243, 76, 97, 255, 252, 36, 232, 255,
-    235, 100, 24, 255, 252, 36, 158, 255, 254, 20, 142, 255, 245, 135, 124, 255,
-    251, 43, 121, 255, 253, 31, 145, 255, 235, 98, 160, 255, 240, 146, 198, 255,
-];
 class HBAOParams {
     declare hbaoMaterial: Material;
     declare randomTexture: Texture2D;
@@ -1257,6 +1247,12 @@ class HBAOParams {
     private _blurSharpness = 8;
     private _aoSaturation = 1.0;
 
+    private _randomDirAndJitter: number[] = [
+        238, 91, 87, 255, 251, 44, 119, 255, 247, 64, 250, 255, 232, 5, 225, 255,
+        253, 177, 140, 255, 250, 51, 84, 255, 243, 76, 97, 255, 252, 36, 232, 255,
+        235, 100, 24, 255, 252, 36, 158, 255, 254, 20, 142, 255, 245, 135, 124, 255,
+        251, 43, 121, 255, 253, 31, 145, 255, 235, 98, 160, 255, 240, 146, 198, 255,
+    ];
     private _init () {
         if (this.hbaoMaterial) return;
         this.hbaoMaterial = new Material();
@@ -1271,8 +1267,8 @@ class HBAOParams {
         const pixelFormat = Texture2D.PixelFormat.RGBA8888;
         const arrayBuffer = new ArrayBuffer(width * height * 4);
         const arrayBufferView = new DataView(arrayBuffer);
-        for (let i = 0; i < aoRowData.length; i++) {
-            arrayBufferView.setUint8(i, aoRowData[i]);
+        for (let i = 0; i < this._randomDirAndJitter.length; i++) {
+            arrayBufferView.setUint8(i, this._randomDirAndJitter[i]);
         }
         const image = new ImageAsset({
             width,
@@ -1293,6 +1289,11 @@ class HBAOParams {
     }
 
     public update () {
+        // should be same value as shader
+        const HALF_KERNEL_RADIUS = 4;
+        const INV_LN2 = 1.44269504;
+        const SQRT_LN2 = 0.8325546;
+
         const gR = this._radiusScale * this._sceneScale;
         const gR2 = gR * gR;
         const gNegInvR2 = -1.0 / gR2;
@@ -1335,11 +1336,6 @@ function _buildHBAOPass (camera: Camera,
     const height = area.height;
 
     const hbaoClearColor = new Color(0, 0, 0, camera.clearColor.w);
-    if (camera.clearFlag & ClearFlagBit.COLOR) {
-        hbaoClearColor.x = camera.clearColor.x;
-        hbaoClearColor.y = camera.clearColor.y;
-        hbaoClearColor.z = camera.clearColor.z;
-    }
 
     const hbaoRTName = `hbaoRTName${cameraID}`;
     if (!ppl.containsResource(hbaoRTName)) {
@@ -1363,7 +1359,7 @@ function _buildHBAOPass (camera: Camera,
     hbaoPass.addRenderTarget(
         hbaoRTName,
         '_',
-        LoadOp.CLEAR,
+        LoadOp.LOAD,
         StoreOp.STORE,
         hbaoClearColor,
     );
@@ -1438,7 +1434,7 @@ function _buildHBAOBlurPass (camera: Camera,
     blurPass.addRenderTarget(
         outputRTName,
         '_',
-        LoadOp.CLEAR,
+        LoadOp.LOAD,
         StoreOp.STORE,
         hbaoClearColor,
     );
