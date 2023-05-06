@@ -1201,8 +1201,12 @@ class HBAOParams {
         return this._blurParam;
     }
 
-    set uv2DepthTexResolution (val: Vec2) {
-        this._uv2DepthTexResolution.set(val);
+    set depthTexFullResolution (val: Vec2) {
+        this._depthTexFullResolution.set(val);
+    }
+
+    set depthTexResolution (val: Vec2) {
+        this._depthTexResolution.set(val);
     }
 
     set sceneScale (val: number) {
@@ -1238,7 +1242,8 @@ class HBAOParams {
     private _miscParam = new Vec4();
     private _blurParam = new Vec4();
 
-    private _uv2DepthTexResolution = new Vec2(1024);
+    private _depthTexFullResolution = new Vec2(1024);
+    private _depthTexResolution = new Vec2(1024);
     private _sceneScale = 1.0;
     private _cameraFov = toRadian(45.0);
     private _radiusScale = 1.0;
@@ -1297,10 +1302,10 @@ class HBAOParams {
         const gR = this._radiusScale * this._sceneScale;
         const gR2 = gR * gR;
         const gNegInvR2 = -1.0 / gR2;
-        const gMaxRadiusPixels = 0.1 * Math.min(this._uv2DepthTexResolution.x, this._uv2DepthTexResolution.y);
+        const gMaxRadiusPixels = 0.1 * Math.min(this._depthTexFullResolution.x, this._depthTexFullResolution.y);
         this._radiusParam.set(gR, gR2, gNegInvR2, gMaxRadiusPixels);
 
-        const vec2 = new Vec2(this._uv2DepthTexResolution.y / this._uv2DepthTexResolution.x, 1.0);
+        const vec2 = new Vec2(this._depthTexResolution.y / this._depthTexResolution.x, 1.0);
         const gFocalLen = new Vec2(vec2.x / Math.tan(this._cameraFov * 0.5), vec2.y / Math.tan(this._cameraFov * 0.5));
         const gTanAngleBias = Math.tan(toRadian(this._angleBiasDegree));
         const gStrength = this._aoStrength;
@@ -1514,16 +1519,19 @@ export function buildHBAOPasses (camera: Camera,
     blurSharpness = 3,
     aoSaturation = 1.0,
     needBlur = true) {
-    // params
-    const sceneScale = camera.nearClip; // or nearest object distance from camera
-    const aoStrength = 1.0;
-
-    if (!_hbaoParams) _hbaoParams = new HBAOParams();
     const cameraID = getCameraUniqueID(camera);
     const area = getRenderArea(camera, camera.window.width, camera.window.height);
     const width = area.width;
     const height = area.height;
-    _hbaoParams.uv2DepthTexResolution = vec2.set(width, height);
+
+    // params
+    if (!_hbaoParams) _hbaoParams = new HBAOParams();
+    const aoStrength = 1.0;
+    // todo: nearest object distance from camera
+    const sceneScale = camera.nearClip;
+    // todo: Half Res Depth Tex
+    _hbaoParams.depthTexFullResolution = vec2.set(width, height);
+    _hbaoParams.depthTexResolution = vec2.set(width, height);
     _hbaoParams.sceneScale = sceneScale;
     _hbaoParams.cameraFov = camera.fov;
     _hbaoParams.radiusScale = radiusScale;
